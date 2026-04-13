@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DroneAcademy — Télépilote A1/A3</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #0a0e1a;
+  --accent: #00d4ff;
+  --accent2: #7c3aed;
+  --gold: #fbbf24;
+  --danger: #ef4444;
+  --success: #10b981;
+  --card: #161e2e;
+  --card2: #1e293b;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --border: #1e3a5f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--sky);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(124,58,237,0.05) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+/* SCREENS */
+.screen { display: none; position: relative; z-index: 1; min-height: 100vh; padding-bottom: 80px; }
+.screen.active { display: block; }
+
+/* HOME */
+#home.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+.logo-drone { font-size: 4rem; margin-bottom: 1rem; animation: floaty 3s ease-in-out infinite; }
+@keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+h1.brand { font-family: 'Syne', sans-serif; font-size: clamp(2rem,6vw,3.2rem); font-weight: 800; letter-spacing:-1px; }
+h1.brand span { color: var(--accent); }
+.tagline { color: var(--muted); font-size: 1rem; margin: .8rem 0 2.2rem; max-width: 380px; }
+
+.home-cards {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; max-width: 460px; width: 100%; margin-bottom: 2rem;
+}
+.home-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.4rem 1rem;
+  cursor: pointer; transition: all .25s; text-align: center;
+}
+.home-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 0 30px rgba(0,212,255,.12); }
+.home-card .hc-icon { font-size: 2rem; margin-bottom: .5rem; }
+.home-card h3 { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700; }
+.home-card p { color: var(--muted); font-size: .78rem; margin-top: .3rem; }
+
+.badge-info {
+  background: rgba(0,212,255,.07); border: 1px solid rgba(0,212,255,.2);
+  border-radius: 10px; padding: .7rem 1.2rem; font-size: .82rem; color: var(--accent);
+}
+
+/* INNER LAYOUT */
+.inner { padding: 1.5rem; max-width: 700px; margin: 0 auto; }
+.back-btn {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  font-size: .9rem; font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap:.5rem; margin-bottom: 1.5rem; padding: 0;
+}
+.back-btn:hover { opacity: .7; }
+.section-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: .3rem; }
+.section-sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.8rem; }
+
+/* LESSONS */
+.lesson-grid { display: flex; flex-direction: column; gap: .75rem; }
+.lesson-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1rem 1.2rem; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem; transition: all .2s;
+}
+.lesson-item:hover { border-color: var(--accent); transform: translateX(4px); }
+.lesson-item.done { border-color: rgba(16,185,129,.3); }
+.l-icon {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--card2);
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+}
+.lesson-item.done .l-icon { background: rgba(16,185,129,.15); }
+.l-info { flex: 1; }
+.l-info h4 { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700; }
+.l-info p { color: var(--muted); font-size: .78rem; margin-top: .15rem; }
+.l-xp { color: var(--gold); font-size: .8rem; font-weight: 600; }
+
+/* QUIZ / EXAM */
+.quiz-wrap { padding: 1.5rem; max-width: 680px; margin: 0 auto; }
+.prog-bar { height: 6px; background: var(--card2); border-radius: 99px; margin-bottom: 1.5rem; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .4s ease; }
+.quiz-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.quiz-counter { color: var(--muted); font-size: .85rem; flex: 1; }
+.quiz-timer { font-family: 'Syne', sans-serif; font-size: .85rem; color: var(--accent); }
+.quiz-q { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; line-height: 1.5; margin-bottom: 1.6rem; }
+.quiz-q .q-cat { display: inline-block; font-size: .7rem; font-family: 'DM Sans',sans-serif; font-weight: 400; color: var(--accent); background: rgba(0,212,255,.1); border-radius: 6px; padding: .2rem .6rem; margin-bottom: .6rem; }
+
+.options { display: flex; flex-direction: column; gap: .65rem; }
+.opt {
+  background: var(--card); border: 2px solid var(--border); border-radius: 14px;
+  padding: .9rem 1.1rem; cursor: pointer; font-size: .9rem; line-height: 1.4;
+  transition: all .2s; display: flex; align-items: flex-start; gap: .8rem;
+}
+.opt:hover { border-color: var(--accent); background: rgba(0,212,255,.05); }
+.opt.correct { border-color: var(--success) !important; background: rgba(16,185,129,.1) !important; }
+.opt.wrong { border-color: var(--danger) !important; background: rgba(239,68,68,.08) !important; }
+.opt.disabled { cursor: default; pointer-events: none; }
+.opt-letter {
+  width: 26px; height: 26px; border-radius: 8px; background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 700;
+  flex-shrink: 0;
+}
+
+.feedback-box { margin-top: 1.1rem; border-radius: 14px; padding: 1rem 1.2rem; font-size: .86rem; line-height: 1.55; }
+.feedback-box.ok { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; }
+.feedback-box.ko { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; }
+.fb-title { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: .3rem; }
+
+.next-btn {
+  margin-top: 1.4rem; width: 100%; padding: 1rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 14px; color: white;
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: opacity .2s;
+}
+.next-btn:hover { opacity: .85; }
+.next-btn:disabled { opacity: .3; cursor: default; }
+
+/* RESULTS */
+#results.active { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+.res-circle {
+  width: 148px; height: 148px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; margin: 1.5rem auto;
+}
+.res-circle .inner-circle {
+  width: 112px; height: 112px; border-radius: 50%; background: var(--sky);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: absolute;
+}
+.res-score { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; line-height: 1; }
+.res-sub { font-size: .7rem; color: var(--muted); margin-top: .2rem; }
+.res-verdict { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: .5rem; }
+.res-verdict.pass { color: var(--success); }
+.res-verdict.fail { color: var(--danger); }
+.res-msg { color: var(--muted); font-size: .9rem; max-width: 360px; margin: 0 auto 1.5rem; }
+
+.res-cats { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 1rem 0; text-align: left; width: 100%; max-width: 500px; }
+.res-cat { background: var(--card); border-radius: 12px; padding: .8rem 1rem; font-size: .78rem; }
+.res-cat strong { display: block; font-family: 'Syne', sans-serif; font-size: .82rem; margin-bottom: .2rem; }
+.mini-bar { height: 4px; background: var(--card2); border-radius: 99px; margin-top: .4rem; overflow: hidden; }
+.mini-fill { height: 100%; border-radius: 99px; }
+
+.res-btns { display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; margin-top: .5rem; }
+.btn-p { padding: .85rem 1.8rem; background: linear-gradient(135deg,var(--accent),var(--accent2)); border:none; border-radius:12px; color:white; font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700; cursor:pointer; }
+.btn-p:hover { opacity: .85; }
+.btn-s { padding: .85rem 1.8rem; background: var(--card); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:'Syne',sans-serif; font-size:.95rem; font-weight:600; cursor:pointer; }
+.btn-s:hover { border-color: var(--accent); }
+
+/* FICHES */
+.fiche { background: var(--card); border:1px solid var(--border); border-radius:16px; margin-bottom:1rem; overflow:hidden; }
+.fiche-head { padding:1rem 1.3rem; cursor:pointer; display:flex; align-items:center; gap:.8rem; user-select:none; }
+.fiche-head:hover { background: rgba(255,255,255,.02); }
+.fi-icon { font-size: 1.4rem; }
+.fi-title { font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem; flex:1; }
+.fi-arrow { color:var(--muted); transition:transform .25s; }
+.fiche.open .fi-arrow { transform: rotate(90deg); }
+.fiche-body { display:none; padding:0 1.3rem 1.3rem; }
+.fiche.open .fiche-body { display:block; }
+.fiche-body p, .fiche-body li { font-size:.86rem; color:var(--muted); line-height:1.65; }
+.fiche-body ul { margin-left:1.2rem; margin-top:.4rem; }
+.fiche-body h5 { font-family:'Syne',sans-serif; font-size:.86rem; font-weight:700; color:var(--text); margin:.8rem 0 .3rem; }
+.hl { color: var(--accent); font-weight:600; }
+.wn { color: var(--gold); font-weight:600; }
+.dg { color: var(--danger); font-weight:600; }
+.ftable { width:100%; border-collapse:collapse; font-size:.8rem; margin-top:.6rem; }
+.ftable th { background:var(--card2); color:var(--accent); padding:.5rem .7rem; text-align:left; font-family:'Syne',sans-serif; }
+.ftable td { padding:.45rem .7rem; border-top:1px solid var(--border); color:var(--muted); }
+
+/* STATS */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-bottom:1.8rem; }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.2rem; }
+.stat-val { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; }
+.stat-lbl { color:var(--muted); font-size:.75rem; margin-top:.2rem; }
+.stat-card.ac { border-color:rgba(0,212,255,.3); }
+.stat-card.ac .stat-val { color:var(--accent); }
+.stat-card.gd .stat-val { color:var(--gold); }
+.hist-title { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:.8rem; }
+.hist-item { display:flex; align-items:center; gap:.8rem; padding:.6rem 0; border-bottom:1px solid var(--border); font-size:.82rem; }
+.hist-badge { padding:.2rem .6rem; border-radius:6px; font-size:.7rem; font-family:'Syne',sans-serif; font-weight:700; flex-shrink:0; }
+.hist-badge.pass { background:rgba(16,185,129,.15); color:var(--success); }
+.hist-badge.fail { background:rgba(239,68,68,.12); color:var(--danger); }
+.hist-score { margin-left:auto; color:var(--muted); }
+
+/* NAV */
+.nav-bar {
+  position: fixed; bottom:0; left:0; right:0;
+  background: rgba(10,14,26,.96); backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  display: flex; z-index:100;
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:.2rem;
+  padding:.7rem .4rem; cursor:pointer; color:var(--muted);
+  font-size:.65rem; border:none; background:none; font-family:'DM Sans',sans-serif;
+  transition:color .2s;
+}
+.nav-item:hover, .nav-item.active { color: var(--accent); }
+.nav-icon { font-size:1.25rem; }
+
+/* TOAST */
+.toast {
+  position:fixed; top:1.5rem; left:50%;
+  transform: translateX(-50%) translateY(-80px);
+  background:var(--success); color:white;
+  padding:.6rem 1.4rem; border-radius:99px;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:.9rem;
+  z-index:200; transition:transform .35s ease; pointer-events:none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* XP bar home */
+.xp-bar-home { width:100%; max-width:380px; margin:0 auto 1.5rem; }
+.xp-label { display:flex; justify-content:space-between; font-size:.78rem; color:var(--muted); margin-bottom:.4rem; }
+.xp-track { height:8px; background:var(--card2); border-radius:99px; overflow:hidden; }
+.xp-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width .5s ease; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ======== HOME ======== -->
+<div class="screen active" id="home">
+  <div class="logo-drone">🚁</div>
+  <h1 class="brand">Drone<span>Academy</span></h1>
+  <p class="tagline">Prépare et réussis ton examen télépilote A1/A3 du premier coup 🎯</p>
+
+  <div class="xp-bar-home">
+    <div class="xp-label">
+      <span id="xpLabel">⚡ 0 XP</span>
+      <span id="lessonsDone">0/8 leçons</span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="home-cards">
+    <div class="home-card" onclick="goLearn()">
+      <div class="hc-icon">📚</div>
+      <h3>Apprendre</h3>
+      <p>8 modules par thème</p>
+    </div>
+    <div class="home-card" onclick="goExam()">
+      <div class="hc-icon">🎯</div>
+      <h3>Examen blanc</h3>
+      <p>40 QCM complet</p>
+    </div>
+    <div class="home-card" onclick="goFiches()">
+      <div class="hc-icon">📋</div>
+      <h3>Fiches mémo</h3>
+      <p>L'essentiel à retenir</p>
+    </div>
+    <div class="home-card" onclick="goStats()">
+      <div class="hc-icon">📊</div>
+      <h3>Mes stats</h3>
+      <p>Ta progression</p>
+    </div>
+  </div>
+  <div class="badge-info">✅ Examen A1/A3 · 40 QCM · Score min. 75% · AlphaTango</div>
+  <p style="color:var(--muted);font-size:.75rem;margin-top:.7rem;">Dès 14 ans · gratuit sur alphatango.aviation-civile.gouv.fr</p>
+</div>
+
+<!-- ======== LEARN ======== -->
+<div class="screen" id="learn">
+  <div class="inner">
+    <button class="back-btn" onclick="goHome()">← Accueil</button>
+    <div class="section-title">📚 Leçons</div>
+    <div class="section-sub">Maîtrise chaque thème avant l'examen</div>
+    <div class="lesson-grid" id="lessonGrid"></div>
+  </div>
+</div>
+
+<!-- ======== QUIZ ======== -->
+<div class="screen" id="quiz">
+  <div class="quiz-wrap">
+    <button class="back-btn" onclick="goLearn()">← Leçons</button>
+    <div class="prog-bar"><div class="prog-fill" id="qProg" style="width:0%"></div></div>
+    <div class="quiz-meta">
+      <div class="quiz-counter" id="qCount"></div>
+    </div>
+    <div class="quiz-q" id="qText"></div>
+    <div class="options" id="qOpts"></div>
+    <div id="qFeedback"></div>
+    <button class="next-btn" id="qNext" onclick="qNextQ()" disabled>Continuer →</button>
+  </div>
+</div>
+
+<!-- ======== EXAM ======== -->
+<div class="screen" id="exam">
+  <div class="quiz-wrap">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.8rem;">
+      <button class="back-btn" style="margin:0" id="examQuitBtn">✕ Quitter</button>
+      <div style="flex:1"><div class="prog-bar" style="margin:0"><div class="prog-fill" id="eProg" style="width:0%"></div></div></div>
+      <div class="quiz-timer" id="eTimer">⏱ 00:00</div>
+    </div>
+    <div class="quiz-meta">
+      <div class="quiz-counter" id="eCount"></div>
+    </div>
+    <div class="quiz-q" id="eText"></div>
+    <div class="options" id="eOpts"></div>
+    <div id="eFeedback"></div>
+    <button class="next-btn" id="eNext" onclick="eNextQ()" disabled>Continuer →</button>
+  </div>
+</div>
+
+<!-- ======== RESULTS ======== -->
+<div class="screen" id="results">
+  <div class="res-circle" id="resCircle">
+    <div class="inner-circle">
+      <div class="res-score" id="resScore"></div>
+      <div class="res-sub">/ 40</div>
+    </div>
+  </div>
+  <div class="res-verdict" id="resVerdict"></div>
+  <div class="res-msg" id="resMsg"></div>
+  <div class="res-cats" id="resCats"></div>
+  <div class="res-btns">
+    <button class="btn-p" onclick="goExam()">🔁 Recommencer</button>
+    <button class="btn-s" onclick="goHome()">🏠 Accueil</button>
+  </div>
+</div>
+
+<!-- ======== FICHES ======== -->
+<div class="screen" id="fiches">
+  <div class="inner">
+    <button class="back-btn" onclick="goHome()">← Accueil</button>
+    <div class="section-title">📋 Fiches mémo</div>
+    <div class="section-sub">L'essentiel à retenir pour l'examen</div>
+    <div id="fichesWrap"></div>
+  </div>
+</div>
+
+<!-- ======== STATS ======== -->
+<div class="screen" id="stats">
+  <div class="inner">
+    <button class="back-btn" onclick="goHome()">← Accueil</button>
+    <div class="section-title">📊 Mes statistiques</div>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="hist-title">Historique des examens blancs</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <button class="nav-item active" id="nav-home" onclick="goHome()"><span class="nav-icon">🏠</span>Accueil</button>
+  <button class="nav-item" id="nav-learn" onclick="goLearn()"><span class="nav-icon">📚</span>Apprendre</button>
+  <button class="nav-item" id="nav-exam" onclick="goExam()"><span class="nav-icon">🎯</span>Examen</button>
+  <button class="nav-item" id="nav-fiches" onclick="goFiches()"><span class="nav-icon">📋</span>Fiches</button>
+  <button class="nav-item" id="nav-stats" onclick="goStats()"><span class="nav-icon">📊</span>Stats</button>
+</nav>
+
+<script>
+// ══════════════════════════════════════════════
+// QUESTIONS
+// ══════════════════════════════════════════════
+var QS = [
+  // RÉGLEMENTATION
+  {cat:"Réglementation",q:"Quelle est en France la hauteur de vol maximale autorisée pour un drone de loisir (hors sites spéciaux) ?",opts:["50 mètres","100 mètres","120 mètres","150 mètres"],ans:2,exp:"La hauteur maximale est de 120 mètres au-dessus du sol, conformément à la réglementation européenne EASA (règlement UE 2019/947)."},
+  {cat:"Réglementation",q:"L'enregistrement d'un drone sur AlphaTango est obligatoire à partir de quelle masse ?",opts:["100 grammes","250 grammes","500 grammes","800 grammes"],ans:1,exp:"Tout drone de 250 g ou plus (ou équipé d'une caméra) doit être enregistré sur AlphaTango par l'exploitant UAS."},
+  {cat:"Réglementation",q:"Un avion ou hélicoptère s'approche de la zone où vous volez. Que faites-vous ?",opts:["J'accélère pour quitter la zone","J'interromps sans délai le vol de mon drone","Je monte à 200m pour laisser passer l'aéronef","Je continue et surveille"],ans:1,exp:"En cas d'approche d'un aéronef habité, le télépilote doit interrompre immédiatement son vol. Les aéronefs habités ont toujours la priorité."},
+  {cat:"Réglementation",q:"À quelle distance maximale est-on autorisé à faire voler un drone de loisir (hors dérogation) ?",opts:["100 mètres","300 mètres","500 mètres","À portée de vue directe"],ans:3,exp:"Le drone doit toujours rester en vue directe (VLOS) du télépilote, qui doit conserver une vue dégagée sur l'environnement aérien."},
+  {cat:"Réglementation",q:"Le vol de nuit avec un drone de loisir est :",opts:["Totalement interdit en France","Autorisé avec une lampe sur le drone","Interdit pendant la nuit aéronautique sauf sur certains sites d'aéromodélisme publiés","Autorisé jusqu'à minuit"],ans:2,exp:"Le vol de loisir est interdit durant la nuit aéronautique (coucher du soleil + 30 min au lever du soleil - 30 min), sauf sur sites d'aéromodélisme autorisés."},
+  {cat:"Réglementation",q:"Dans quelles agglomérations l'usage en espace public d'un drone de loisir est-il autorisé ?",opts:["Dans toutes les communes","Uniquement à Paris et Lyon","Il est interdit en espace public en agglomération","Seulement avec une autorisation préfectorale"],ans:2,exp:"L'usage d'un drone en espace public en agglomération est interdit, sauf dans des zones spécifiquement autorisées."},
+  {cat:"Réglementation",q:"À quelles conditions peut-on utiliser un drone en espace PRIVÉ en agglomération ?",opts:["Librement, c'est un espace privé","Avec l'accord du propriétaire et en adaptant sa vitesse et hauteur","Avec une autorisation de la mairie","Impossible même en espace privé"],ans:1,exp:"En espace privé en agglomération, le vol est possible avec l'accord du propriétaire des lieux et en adaptant vitesse et hauteur à l'environnement."},
+  {cat:"Réglementation",q:"En cas de contrôle, quels documents dois-je présenter pour un drone de plus de 800g ?",opts:["Mon permis de conduire","L'extrait d'enregistrement de l'aéronef et l'attestation de suivi de formation","Uniquement l'attestation de formation","Aucun document n'est requis"],ans:1,exp:"Pour un drone de plus de 800g, il faut présenter l'extrait d'enregistrement de l'aéronef télépiloté ET l'attestation de suivi de formation."},
+  {cat:"Réglementation",q:"À quel âge peut-on passer l'examen de télépilote de drone A1/A3 ?",opts:["12 ans","14 ans","16 ans","18 ans"],ans:1,exp:"L'examen A1/A3 peut être passé dès 14 ans. C'est l'une des certifications les plus accessibles en aviation."},
+  {cat:"Réglementation",q:"L'examen A1/A3 se compose de :",opts:["20 questions, 60% de réussite requis","30 questions, 75% de réussite requis","40 questions, 75% de réussite requis","50 questions, 80% de réussite requis"],ans:2,exp:"L'examen A1/A3 comporte 40 QCM. Il faut obtenir au moins 75% (30/40) pour le valider. Il est passé en ligne sur AlphaTango."},
+  {cat:"Réglementation",q:"Le vol en immersion (FPV) d'un drone est autorisé :",opts:["Uniquement avec un casque homologué","Sous réserve qu'une autre personne garde le drone en vue directe et puisse intervenir à tout instant","Interdit en France","Autorisé librement sans condition"],ans:1,exp:"Le vol FPV est autorisé à condition qu'un observateur garde en permanence le drone en vue directe et soit en mesure d'assurer la sécurité du vol."},
+  {cat:"Réglementation",q:"Le vol en mode automatique (navigation programmée) est autorisé :",opts:["Interdit pour les loisirs","Si le drone reste en vue et qu'on peut intervenir à tout instant sur sa trajectoire","Sans restriction particulière","Uniquement avec un brevet professionnel"],ans:1,exp:"Le vol automatisé est autorisé si le télépilote garde le drone en vue et reste capable d'intervenir sur la trajectoire à tout moment."},
+
+  // CATÉGORIES & CLASSES
+  {cat:"Catégories & Classes",q:"Un drone de classe C0 a une masse inférieure à :",opts:["100 grammes","250 grammes","500 grammes","1 kilogramme"],ans:1,exp:"La classe C0 correspond aux drones de moins de 250 grammes. Ces drones ont très peu de restrictions réglementaires."},
+  {cat:"Catégories & Classes",q:"Dans quelle sous-catégorie peut-on voler avec un drone de classe C1 ?",opts:["A1 uniquement","A2 uniquement","A1 et A3","A3 uniquement"],ans:0,exp:"Les drones de classe C1 (250g à 900g) peuvent voler en sous-catégorie A1 et A3, à distance des personnes."},
+  {cat:"Catégories & Classes",q:"La sous-catégorie A3 impose de voler :",opts:["Près des personnes avec accord","À 150m min des zones résidentielles, commerciales, industrielles ou récréatives","Uniquement en forêt","Sans restriction particulière"],ans:1,exp:"La sous-catégorie A3 impose de voler à au moins 150 mètres de toute zone résidentielle, commerciale, industrielle ou récréative."},
+  {cat:"Catégories & Classes",q:"Depuis le 1er janvier 2024, les drones mis sur le marché doivent être :",opts:["Enregistrés auprès de l'EASA","Marqués CE avec une classe (C0 à C4)","Équipés d'un ADS-B obligatoire","Limités à 100m d'altitude"],ans:1,exp:"Depuis janvier 2024, les nouveaux drones doivent porter un marquage CE de classe C0 à C4 définissant les conditions d'utilisation autorisées."},
+  {cat:"Catégories & Classes",q:"Un drone sans marquage CE (legacy, acheté avant 2024) peut être utilisé :",opts:["Indéfiniment sans restriction","Jusqu'au 1er janvier 2026 dans les mêmes conditions qu'un drone de classe équivalente","Il est interdit depuis 2024","Uniquement en catégorie spécifique"],ans:1,exp:"Les drones legacy peuvent être utilisés jusqu'au 1er janvier 2026 selon leur masse, comme un drone de classe équivalente."},
+
+  // SÉCURITÉ
+  {cat:"Sécurité & Avant-vol",q:"Avant chaque vol, laquelle de ces vérifications N'EST PAS nécessaire ?",opts:["Vérifier l'état de charge des batteries","Peser l'aéronef télépiloté","Vérifier les conditions météo","Vérifier l'espace aérien de la zone de vol"],ans:1,exp:"La pesée du drone n'est pas une vérification pré-vol. On vérifie les batteries, la météo, l'espace aérien, l'état mécanique, etc."},
+  {cat:"Sécurité & Avant-vol",q:"Quels facteurs peuvent conduire à reporter un vol pour des raisons de sécurité ?",opts:["Vent fort, mauvaise réception GPS, présence d'autres aéronefs","Uniquement la pluie","La présence de spectateurs","Un ciel sans nuages"],ans:0,exp:"Un signal GPS dégradé, des vents forts, une mauvaise visibilité ou la présence d'autres aéronefs sont des raisons valables de reporter un vol."},
+  {cat:"Sécurité & Avant-vol",q:"Mon drone tombe en panne au-dessus d'une foule. La priorité absolue est :",opts:["Récupérer le drone coûte que coûte","Sécuriser les personnes au sol et prévenir les services compétents","Filmer l'incident","Appeler le constructeur"],ans:1,exp:"La priorité est toujours la sécurité des personnes. Il faut prévenir les personnes du danger et alerter les services compétents si nécessaire."},
+  {cat:"Sécurité & Avant-vol",q:"L'assurance responsabilité civile pour un drone de loisir est :",opts:["Facultative","Obligatoire uniquement au-dessus de 1kg","À vérifier auprès de son assureur – fortement recommandée","Inutile pour les mineurs"],ans:2,exp:"Il est impératif de vérifier sa couverture en responsabilité civile auprès de son assureur pour les vols au-dessus d'autrui."},
+  {cat:"Sécurité & Avant-vol",q:"Que signifie voler en VLOS ?",opts:["Vol automatique via GPS","Vol en ligne de vue directe (Visual Line Of Sight)","Vol interdit en zone locale","Vol de loisir sécurisé"],ans:1,exp:"VLOS signifie que le télépilote doit garder en permanence son drone en vue directe, sans aide optique (sauf lunettes correctrices)."},
+
+  // VIE PRIVÉE
+  {cat:"Vie privée & Images",q:"Le respect de la vie privée avec un drone équipé d'une caméra implique :",opts:["Filmer tout ce qu'on veut en espace public","Ne pas enregistrer d'images permettant d'identifier des personnes sans autorisation","Prévenir uniquement les voisins directs","Aucune obligation particulière"],ans:1,exp:"Il est interdit d'enregistrer des images permettant d'identifier des personnes (visages, plaques) sans leur autorisation préalable."},
+  {cat:"Vie privée & Images",q:"Informer les personnes présentes de la présence d'une caméra sur un drone est :",opts:["Inutile si on est en espace public","Une obligation légale de transparence","Interdit pour des raisons de sécurité","Requis uniquement pour les drones professionnels"],ans:1,exp:"Informer les personnes présentes de la caméra est une obligation légale liée au respect de la vie privée."},
+  {cat:"Vie privée & Images",q:"Diffuser une image d'une personne identifiable filmée depuis un drone :",opts:["Est libre en espace public","Requiert l'autorisation préalable de la personne","Est autorisé si le drone vole légalement","Dépend du nombre de vues"],ans:1,exp:"La diffusion d'images permettant d'identifier une personne requiert son autorisation, même si la prise de vue était légale."},
+
+  // ESPACES AÉRIENS
+  {cat:"Espaces aériens",q:"Qu'est-ce que la géo-awareness sur un drone moderne ?",opts:["Un système de caméra haute résolution","Un système qui alerte le pilote s'il s'approche d'une zone interdite","Le GPS anti-brouillage","Un protocole de communication longue portée"],ans:1,exp:"La géo-awareness alerte le télépilote lorsque le drone s'approche d'une zone à vol réglementé ou interdit (aéroports, zones militaires, etc.)."},
+  {cat:"Espaces aériens",q:"Le survol d'un aéroport sans autorisation est :",opts:["Autorisé à plus de 120m d'altitude","Strictement interdit","Autorisé la nuit uniquement","Autorisé dans un rayon de 2km"],ans:1,exp:"Le survol des aéroports et de leurs zones de dégagement est strictement interdit sans autorisation spéciale."},
+  {cat:"Espaces aériens",q:"Où consulter les zones d'espace aérien autorisées ou interdites aux drones ?",opts:["Sur Google Maps","Sur AlphaTango (carte de France interactive)","Dans l'annuaire téléphonique","Sur le site de la météo"],ans:1,exp:"AlphaTango propose une carte interactive officielle permettant de consulter les zones réglementées, interdites ou soumises à autorisation."},
+  {cat:"Espaces aériens",q:"Qu'est-ce qu'une zone CTR ?",opts:["Zone de contrôle terminal autour des aérodromes","Zone réservée aux drones de loisir","Couloir de transit réglementé","Zone à 120m d'altitude uniquement"],ans:0,exp:"Une CTR (Control Zone) est une zone de contrôle autour d'un aérodrome. Le survol d'une CTR avec un drone nécessite une autorisation préalable."},
+  {cat:"Espaces aériens",q:"L'identification à distance (Remote ID) consiste à :",opts:["Filmer l'environnement à 360°","Diffuser en temps réel l'identifiant de l'exploitant et la position du drone","Permettre au drone de s'identifier auprès des autres drones","Enregistrer le vol sur une boîte noire"],ans:1,exp:"Le Remote ID diffuse en temps réel l'identifiant de l'exploitant UAS et la position du drone, permettant aux autorités de l'identifier en vol."},
+
+  // MÉTÉO
+  {cat:"Météorologie",q:"Quel phénomène météo représente le plus grand danger immédiat pour un drone léger ?",opts:["Une légère bruine","Des vents forts et des rafales","Un ciel couvert sans pluie","Des températures basses"],ans:1,exp:"Les vents forts et rafales sont le danger météo le plus immédiat : ils peuvent faire perdre le contrôle du drone et épuiser les batteries très vite."},
+  {cat:"Météorologie",q:"Voler par forte pluie avec un drone non étanche risque :",opts:["Aucun risque si on est prudent","Un court-circuit électronique pouvant provoquer la perte du drone","Uniquement de réduire l'autonomie","D'améliorer la stabilité du drone"],ans:1,exp:"L'humidité et l'eau pénétrant dans les circuits électroniques peuvent provoquer des courts-circuits et la perte totale de contrôle."},
+  {cat:"Météorologie",q:"Quel outil utiliser pour connaître la météo avant un vol de drone ?",opts:["N'importe quelle appli météo","Météo-France ou les données météo aéronautiques (TAF, METAR)","La télévision uniquement","Les réseaux sociaux locaux"],ans:1,exp:"Météo-France et les outils de météo aéronautique (TAF, METAR) sont les sources fiables à consulter avant un vol."},
+  {cat:"Météorologie",q:"Un plafond nuageux à 150 mètres signifie :",opts:["Les nuages sont à 150m – vol possible sous les nuages","Conditions idéales pour voler","Visibilité nulle interdisant tout vol","Aucune implication pour les drones"],ans:0,exp:"Un plafond à 150m signifie que les nuages sont très bas. Le vol sous 120m est techniquement possible mais la visibilité réduite est dangereuse."},
+
+  // TECHNIQUE
+  {cat:"Technique & Fonctionnement",q:"Que signifie le mode Return to Home (RTH) ?",opts:["Le drone revient automatiquement à son point de décollage","Le drone monte à 500m pour recevoir le signal","Un mode de vol basse consommation","Le drone fait du vol stationnaire"],ans:0,exp:"Le RTH est une fonction de sécurité : le drone retourne automatiquement à son point de décollage en cas de perte de signal ou batterie critique."},
+  {cat:"Technique & Fonctionnement",q:"Que se passe-t-il si les batteries d'un drone sont trop déchargées en vol ?",opts:["La vitesse augmente","Le drone peut s'écraser brutalement","Les LED clignotent mais le drone continue","La caméra se coupe uniquement"],ans:1,exp:"Un drone à la batterie trop faible perd en puissance et peut s'écraser brutalement. La gestion de la batterie est cruciale pour la sécurité."},
+  {cat:"Technique & Fonctionnement",q:"Le nombre minimal de satellites GPS nécessaire pour un positionnement complet est :",opts:["2 satellites","3 satellites","4 satellites","8 satellites"],ans:2,exp:"Au minimum 4 satellites GPS sont nécessaires pour calculer la position complète (latitude, longitude, altitude)."},
+  {cat:"Technique & Fonctionnement",q:"Qu'est-ce que le 'failsafe' d'un drone ?",opts:["Un mode de vol acrobatique","Un comportement automatique de sécurité en cas de perte de contrôle","Un système anti-collision radar","Un protocole de communication crypté"],ans:1,exp:"Le failsafe est le comportement préprogrammé du drone en cas de perte du signal radio : atterrissage, RTH ou vol stationnaire selon la configuration."},
+  {cat:"Technique & Fonctionnement",q:"Le Remote ID est obligatoire pour les drones de :",opts:["250g ou plus (ou équipés d'un dispositif de signalement)","800 grammes et plus","1 kilogramme et plus","Tous les drones sans exception"],ans:0,exp:"Le signalement électronique est obligatoire pour les drones de plus de 250g ou équipés d'un dispositif de signalement, conformément au règlement européen."},
+
+  // CAS PRATIQUES
+  {cat:"Cas pratiques",q:"Vous volez et apercevez un hélicoptère de la Sécurité Civile. Que faites-vous ?",opts:["Je monte pour le voir de plus près","J'atterris immédiatement","Je continue en surveillant","Je contacte la tour de contrôle"],ans:1,exp:"Face à un hélicoptère de secours, il faut immédiatement atterrir. Les hélicoptères de secours ont priorité absolue et volent très bas."},
+  {cat:"Cas pratiques",q:"Vous souhaitez filmer une manifestation publique avec votre drone. C'est :",opts:["Autorisé car c'est un événement public","Interdit – survol de rassemblements de personnes prohibé","Autorisé avec l'accord des organisateurs","Autorisé si on floute les visages après"],ans:1,exp:"Le survol de rassemblements de personnes est strictement interdit. Une chute sur une foule pourrait causer de graves blessures."},
+  {cat:"Cas pratiques",q:"Votre drone s'approche d'une zone militaire. Que faites-vous ?",opts:["Je continue – ça ne concerne pas les loisirs","Je fais demi-tour immédiatement et j'atterris hors de la zone","Je monte à 200m pour passer au-dessus","Je continue en mode automatique"],ans:1,exp:"Les zones militaires (R, D, P) sont interdites aux drones sans autorisation. Il faut immédiatement faire demi-tour et atterrir en dehors de la zone."},
+  {cat:"Cas pratiques",q:"Un drone de 300g tombe et blesse légèrement une personne. Le télépilote doit :",opts:["Partir discrètement pour éviter les problèmes","Porter secours, rester sur place et déclarer l'incident si nécessaire","Appeler uniquement le constructeur","Il n'a aucune obligation légale"],ans:1,exp:"Le télépilote est responsable. Il doit porter secours, rester sur place et peut être amené à déclarer l'incident aux autorités."},
+  {cat:"Cas pratiques",q:"Avant de voler dans une nouvelle zone, je dois :",opts:["Juste vérifier que le drone fonctionne","Vérifier AlphaTango, la météo et les restrictions locales","Demander à des voisins si c'est autorisé","Rien de particulier si j'ai mon attestation A1/A3"],ans:1,exp:"Avant chaque vol dans une nouvelle zone : vérifier AlphaTango pour les zones réglementées, la météo, les arrêtés locaux et l'état du drone."},
+];
+
+// ══════════════════════════════════════════════
+// LESSONS CONFIG
+// ══════════════════════════════════════════════
+var LESSONS = [
+  {id:0,icon:"⚖️",title:"Réglementation",desc:"Règles EASA, AlphaTango, enregistrement",cat:"Réglementation",xp:30},
+  {id:1,icon:"🏷️",title:"Catégories & Classes",desc:"C0-C4, sous-catégories A1/A2/A3",cat:"Catégories & Classes",xp:25},
+  {id:2,icon:"🛡️",title:"Sécurité & Avant-vol",desc:"Checklist, priorités, assurance",cat:"Sécurité & Avant-vol",xp:25},
+  {id:3,icon:"📷",title:"Vie privée & Images",desc:"RGPD, captation d'images, diffusion",cat:"Vie privée & Images",xp:20},
+  {id:4,icon:"🗺️",title:"Espaces aériens",desc:"Zones interdites, CTR, géo-awareness",cat:"Espaces aériens",xp:30},
+  {id:5,icon:"🌦️",title:"Météorologie",desc:"Vents, pluie, visibilité, plafonds",cat:"Météorologie",xp:20},
+  {id:6,icon:"⚙️",title:"Technique drone",desc:"RTH, failsafe, GPS, batteries",cat:"Technique & Fonctionnement",xp:25},
+  {id:7,icon:"🎯",title:"Cas pratiques",desc:"Situations réelles, prises de décision",cat:"Cas pratiques",xp:30},
+];
+
+// ══════════════════════════════════════════════
+// FICHES
+// ══════════════════════════════════════════════
+var FICHES = [
+  {icon:"⚖️",title:"Réglementation essentielle",html:'<h5>Hauteur de vol</h5><p><span class="hl">120 m</span> maximum au-dessus du sol (réglementation européenne EASA)</p><h5>Enregistrement AlphaTango</h5><ul><li>Drone ≥ <span class="hl">250 g</span> ou équipé d\'une caméra → enregistrement exploitant obligatoire</li><li>Drone ≥ <span class="hl">800 g</span> → enregistrement de l\'aéronef obligatoire</li></ul><h5>Examen A1/A3</h5><p><span class="hl">40 QCM</span> · Minimum <span class="hl">75%</span> (30/40) · Gratuit · Dès 14 ans · AlphaTango</p><h5>Nuit aéronautique</h5><p><span class="dg">Vol interdit</span> du coucher du soleil +30 min au lever du soleil -30 min</p>'},
+  {icon:"🏷️",title:"Classes & Catégories",html:'<table class="ftable"><tr><th>Classe</th><th>Masse</th><th>Sous-cat.</th></tr><tr><td>C0</td><td>&lt; 250 g</td><td>A1 (très peu de restrictions)</td></tr><tr><td>C1</td><td>250g–900g</td><td>A1 (loin des personnes)</td></tr><tr><td>C2</td><td>900g–4 kg</td><td>A2 (avec BAPD)</td></tr><tr><td>C3/C4</td><td>4–25 kg</td><td>A3 (150m zones habitées)</td></tr></table><h5>Sous-catégorie A3</h5><p>Vol à <span class="wn">minimum 150 m</span> de toute zone résidentielle, commerciale, industrielle ou récréative</p><h5>Drones legacy</h5><p>Utilisables jusqu\'au <span class="wn">1er janvier 2026</span> selon leur masse d\'équivalence'},
+  {icon:"🚫",title:"Zones interdites",html:'<h5>Interdit sans autorisation</h5><ul><li><span class="dg">Aéroports et CTR</span> – zone de contrôle autour des aérodromes</li><li><span class="dg">Zones militaires</span> (R, D, P)</li><li><span class="dg">Agglomérations</span> en espace public</li><li><span class="dg">Rassemblements de personnes</span></li><li><span class="dg">Centrales nucléaires</span>, sites sensibles</li></ul><h5>Outil officiel</h5><p>Consulter <span class="hl">AlphaTango</span> (carte interactive) avant tout vol dans une nouvelle zone</p>'},
+  {icon:"✅",title:"Checklist pré-vol",html:'<ul><li>✅ <span class="hl">Batteries</span> drone + télécommande chargées</li><li>✅ <span class="hl">Météo</span> : vent, pluie, visibilité</li><li>✅ <span class="hl">Espace aérien</span> sur AlphaTango</li><li>✅ Inspection <span class="hl">mécanique</span> : hélices, moteurs</li><li>✅ <span class="hl">Réception GPS</span> (min 4 satellites)</li><li>✅ Calibration <span class="hl">boussole</span> si nécessaire</li><li>❌ Peser le drone <span class="dg">(inutile)</span></li></ul>'},
+  {icon:"📷",title:"Vie privée & Caméra",html:'<ul><li><span class="dg">Interdit</span> de filmer des personnes identifiables sans accord</li><li><span class="dg">Interdit</span> de diffuser des images de personnes sans autorisation</li><li><span class="hl">Obligatoire</span> d\'informer les personnes présentes de la caméra</li><li>Pas d\'images de plaques d\'immatriculation sans accord</li></ul><h5>RGPD</h5><p>Les images de personnes identifiables sont des données personnelles soumises au RGPD</p>'},
+  {icon:"⚙️",title:"Fonctions de sécurité",html:'<h5>Return to Home (RTH)</h5><p>Retour automatique au point de décollage si : perte de signal, batterie critique ou activation manuelle</p><h5>Failsafe</h5><p>Comportement automatique préprogrammé en cas de perte de contrôle (RTH, atterrissage, hover)</p><h5>GPS</h5><p>Minimum <span class="hl">4 satellites</span> pour un positionnement complet (lat, lng, alt)</p><h5>Remote ID</h5><p>Obligatoire dès 250g – diffuse position + identifiant exploitant en temps réel'},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+var S = JSON.parse(localStorage.getItem('dac2') || 'null') || {
+  xp: 0,
+  done: [],
+  examHistory: [],
+  totalQ: 0,
+  correctQ: 0
+};
+function save() { localStorage.setItem('dac2', JSON.stringify(S)); }
+
+// ══════════════════════════════════════════════
+// QUIZ STATE
+// ══════════════════════════════════════════════
+var Q = { qs:[], cur:0, answered:false, score:0, mode:'lesson', lid:-1, cats:{} };
+var eTimer = null, eSeconds = 0;
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var nb = document.getElementById('nav-' + id);
+  if (nb) nb.classList.add('active');
+}
+
+function goHome() {
+  updateHomeUI();
+  showScreen('home');
+}
+function goLearn() {
+  renderLearn();
+  showScreen('learn');
+}
+function goExam() {
+  startExam();
+  showScreen('exam');
+}
+function goFiches() {
+  renderFiches();
+  showScreen('fiches');
+}
+function goStats() {
+  renderStats();
+  showScreen('stats');
+}
+
+// ══════════════════════════════════════════════
+// HOME UI
+// ══════════════════════════════════════════════
+function updateHomeUI() {
+  document.getElementById('xpLabel').textContent = '⚡ ' + S.xp + ' XP';
+  document.getElementById('lessonsDone').textContent = S.done.length + '/' + LESSONS.length + ' leçons';
+  var pct = Math.min(100, Math.round(S.xp / 2));
+  document.getElementById('xpFill').style.width = pct + '%';
+}
+
+// ══════════════════════════════════════════════
+// LEARN
+// ══════════════════════════════════════════════
+function renderLearn() {
+  var html = '';
+  LESSONS.forEach(function(l, i) {
+    var done = S.done.indexOf(l.id) !== -1;
+    var qs = QS.filter(function(q){ return q.cat === l.cat; });
+    html += '<div class="lesson-item ' + (done ? 'done' : '') + '" onclick="startLesson(' + i + ')">' +
+      '<div class="l-icon">' + (done ? '✅' : l.icon) + '</div>' +
+      '<div class="l-info"><h4>' + l.title + '</h4><p>' + l.desc + ' · ' + qs.length + ' questions</p></div>' +
+      '<div class="l-xp">+' + l.xp + ' XP</div>' +
+      '</div>';
+  });
+  document.getElementById('lessonGrid').innerHTML = html;
+}
+
+function startLesson(idx) {
+  var l = LESSONS[idx];
+  var qs = QS.filter(function(q){ return q.cat === l.cat; });
+  Q = { qs: shuffle(qs.slice()), cur:0, answered:false, score:0, mode:'lesson', lid:idx, cats:{} };
+  showScreen('quiz');
+  renderQ();
+}
+
+// ══════════════════════════════════════════════
+// QUIZ (lesson)
+// ══════════════════════════════════════════════
+function renderQ() {
+  var q = Q.qs[Q.cur];
+  var total = Q.qs.length;
+  document.getElementById('qProg').style.width = (Q.cur / total * 100) + '%';
+  document.getElementById('qCount').textContent = 'Question ' + (Q.cur+1) + ' / ' + total;
+  document.getElementById('qText').innerHTML = '<span class="q-cat">' + q.cat + '</span><br>' + q.q;
+  document.getElementById('qFeedback').innerHTML = '';
+  document.getElementById('qNext').disabled = true;
+  Q.answered = false;
+
+  var letters = ['A','B','C','D'];
+  var html = '';
+  q.opts.forEach(function(opt, i) {
+    html += '<div class="opt" onclick="pickQ(' + i + ')" id="qo' + i + '">' +
+      '<span class="opt-letter">' + letters[i] + '</span><span>' + opt + '</span></div>';
+  });
+  document.getElementById('qOpts').innerHTML = html;
+}
+
+function pickQ(idx) {
+  if (Q.answered) return;
+  Q.answered = true;
+  var q = Q.qs[Q.cur];
+  var ok = idx === q.ans;
+  markOpts('q', idx, q.ans);
+  document.getElementById('qFeedback').innerHTML = feedback(ok, q);
+  document.getElementById('qNext').disabled = false;
+  S.totalQ++;
+  if (ok) { Q.score++; S.correctQ++; }
+  save();
+}
+
+function qNextQ() {
+  Q.cur++;
+  if (Q.cur >= Q.qs.length) {
+    var l = LESSONS[Q.lid];
+    if (S.done.indexOf(Q.lid) === -1) {
+      S.done.push(Q.lid);
+      S.xp += l.xp;
+      save();
+      toast('+' + l.xp + ' XP 🎉 Leçon terminée !');
+    }
+    setTimeout(function(){ goLearn(); }, 400);
+  } else {
+    renderQ();
+  }
+}
+
+// ══════════════════════════════════════════════
+// EXAM
+// ══════════════════════════════════════════════
+function startExam() {
+  clearInterval(eTimer);
+  eSeconds = 0;
+  document.getElementById('eTimer').textContent = '⏱ 00:00';
+
+  var all = shuffle(QS.slice());
+  // 40 questions (ou moins si base plus petite)
+  var picked = all.slice(0, Math.min(40, all.length));
+  Q = { qs:picked, cur:0, answered:false, score:0, mode:'exam', lid:-1, cats:{} };
+
+  eTimer = setInterval(function(){
+    eSeconds++;
+    var m = String(Math.floor(eSeconds/60)).padStart(2,'0');
+    var s = String(eSeconds%60).padStart(2,'0');
+    document.getElementById('eTimer').textContent = '⏱ ' + m + ':' + s;
+  }, 1000);
+
+  renderE();
+}
+
+function renderE() {
+  var q = Q.qs[Q.cur];
+  var total = Q.qs.length;
+  document.getElementById('eProg').style.width = (Q.cur / total * 100) + '%';
+  document.getElementById('eCount').textContent = 'Question ' + (Q.cur+1) + ' / ' + total;
+  document.getElementById('eText').innerHTML = '<span class="q-cat">' + q.cat + '</span><br>' + q.q;
+  document.getElementById('eFeedback').innerHTML = '';
+  document.getElementById('eNext').disabled = true;
+  Q.answered = false;
+
+  var letters = ['A','B','C','D'];
+  var html = '';
+  q.opts.forEach(function(opt, i) {
+    html += '<div class="opt" onclick="pickE(' + i + ')" id="eo' + i + '">' +
+      '<span class="opt-letter">' + letters[i] + '</span><span>' + opt + '</span></div>';
+  });
+  document.getElementById('eOpts').innerHTML = html;
+}
+
+function pickE(idx) {
+  if (Q.answered) return;
+  Q.answered = true;
+  var q = Q.qs[Q.cur];
+  var ok = idx === q.ans;
+  markOpts('e', idx, q.ans);
+  document.getElementById('eFeedback').innerHTML = feedback(ok, q);
+  document.getElementById('eNext').disabled = false;
+  if (ok) Q.score++;
+  if (!Q.cats[q.cat]) Q.cats[q.cat] = {ok:0,tot:0};
+  Q.cats[q.cat].tot++;
+  if (ok) Q.cats[q.cat].ok++;
+  S.totalQ++;
+  if (ok) S.correctQ++;
+  save();
+}
+
+function eNextQ() {
+  Q.cur++;
+  if (Q.cur >= Q.qs.length) {
+    clearInterval(eTimer);
+    finishExam();
+  } else {
+    renderE();
+  }
+}
+
+function finishExam() {
+  var total = Q.qs.length;
+  var score = Q.score;
+  var pct = Math.round(score / total * 100);
+  var pass = pct >= 75;
+
+  var rec = { date: new Date().toLocaleDateString('fr-FR'), score:score, total:total, pct:pct, pass:pass, time:eSeconds };
+  S.examHistory.unshift(rec);
+  if (S.examHistory.length > 20) S.examHistory = S.examHistory.slice(0,20);
+  S.xp += pass ? 50 : 10;
+  save();
+
+  // Draw conic gradient circle
+  var color = pass ? '#10b981' : '#ef4444';
+  var circle = document.getElementById('resCircle');
+  circle.style.background = 'conic-gradient(' + color + ' 0% ' + pct + '%, #1e293b ' + pct + '% 100%)';
+  circle.style.boxShadow = '0 0 40px ' + color + '33';
+
+  document.getElementById('resScore').textContent = score;
+  document.getElementById('resScore').style.color = color;
+
+  var verdict = document.getElementById('resVerdict');
+  verdict.className = 'res-verdict ' + (pass ? 'pass' : 'fail');
+  verdict.textContent = pass ? '🏆 Examen réussi !' : '📚 Encore un effort !';
+
+  var m = String(Math.floor(eSeconds/60)).padStart(2,'0');
+  var s = String(eSeconds%60).padStart(2,'0');
+  document.getElementById('resMsg').innerHTML =
+    'Tu as obtenu <strong>' + score + '/' + total + ' (' + pct + '%)</strong> en ' + m + 'm' + s + 's.<br>' +
+    (pass ? 'Tu dépasses la barre des 75% ! Continue comme ça 💪' : 'Il faut 30/40 (75%) pour valider. Révise les points faibles et réessaie !');
+
+  var catsHtml = '';
+  Object.keys(Q.cats).forEach(function(cat) {
+    var cs = Q.cats[cat];
+    var cp = Math.round(cs.ok / cs.tot * 100);
+    var cc = cp >= 75 ? '#10b981' : cp >= 50 ? '#fbbf24' : '#ef4444';
+    catsHtml += '<div class="res-cat"><strong>' + cat + '</strong>' +
+      '<span style="color:' + cc + '">' + cs.ok + '/' + cs.tot + ' (' + cp + '%)</span>' +
+      '<div class="mini-bar"><div class="mini-fill" style="width:' + cp + '%;background:' + cc + '"></div></div></div>';
+  });
+  document.getElementById('resCats').innerHTML = catsHtml;
+
+  if (pass) toast('🏆 +50 XP – Examen réussi !');
+  showScreen('results');
+}
+
+// ══════════════════════════════════════════════
+// FICHES
+// ══════════════════════════════════════════════
+function renderFiches() {
+  var html = '';
+  FICHES.forEach(function(f, i) {
+    html += '<div class="fiche" id="fiche' + i + '">' +
+      '<div class="fiche-head" onclick="toggleFiche(' + i + ')">' +
+      '<span class="fi-icon">' + f.icon + '</span>' +
+      '<span class="fi-title">' + f.title + '</span>' +
+      '<span class="fi-arrow">›</span>' +
+      '</div><div class="fiche-body">' + f.html + '</div></div>';
+  });
+  document.getElementById('fichesWrap').innerHTML = html;
+}
+
+function toggleFiche(i) {
+  document.getElementById('fiche' + i).classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════
+function renderStats() {
+  var acc = S.totalQ > 0 ? Math.round(S.correctQ / S.totalQ * 100) : 0;
+  var passed = S.examHistory.filter(function(e){ return e.pass; }).length;
+  document.getElementById('statGrid').innerHTML =
+    '<div class="stat-card ac"><div class="stat-val">' + S.xp + '</div><div class="stat-lbl">⚡ XP total</div></div>' +
+    '<div class="stat-card"><div class="stat-val">' + S.done.length + '/' + LESSONS.length + '</div><div class="stat-lbl">📚 Leçons terminées</div></div>' +
+    '<div class="stat-card gd"><div class="stat-val">' + acc + '%</div><div class="stat-lbl">🎯 Taux de réussite global</div></div>' +
+    '<div class="stat-card"><div class="stat-val">' + passed + '</div><div class="stat-lbl">🏆 Examens validés (≥75%)</div></div>';
+
+  if (S.examHistory.length === 0) {
+    document.getElementById('histList').innerHTML = '<p style="color:var(--muted);font-size:.85rem">Aucun examen passé pour l\'instant. Lance ton premier examen blanc !</p>';
+  } else {
+    var html = '';
+    S.examHistory.forEach(function(e) {
+      var m = String(Math.floor(e.time/60)).padStart(2,'0');
+      var s = String(e.time%60).padStart(2,'0');
+      html += '<div class="hist-item">' +
+        '<span class="hist-badge ' + (e.pass ? 'pass' : 'fail') + '">' + (e.pass ? 'RÉUSSI' : 'ÉCHOUÉ') + '</span>' +
+        '<span>' + e.date + '</span>' +
+        '<span style="color:var(--muted)">⏱ ' + m + ':' + s + '</span>' +
+        '<span class="hist-score">' + e.score + '/' + (e.total||40) + ' (' + e.pct + '%)</span>' +
+        '</div>';
+    });
+    document.getElementById('histList').innerHTML = html;
+  }
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function markOpts(prefix, chosen, correct) {
+  [0,1,2,3].forEach(function(i) {
+    var el = document.getElementById(prefix + 'o' + i);
+    if (!el) return;
+    el.classList.add('disabled');
+    if (i === correct) el.classList.add('correct');
+    else if (i === chosen) el.classList.add('wrong');
+  });
+}
+
+function feedback(ok, q) {
+  return '<div class="feedback-box ' + (ok ? 'ok' : 'ko') + '">' +
+    '<div class="fb-title">' + (ok ? '✅ Bonne réponse !' : '❌ ' + q.opts[q.ans]) + '</div>' +
+    q.exp + '</div>';
+}
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.getElementById('examQuitBtn').addEventListener('click', function() {
+  if (confirm('Quitter l\'examen en cours ?')) {
+    clearInterval(eTimer);
+    goHome();
+  }
+});
+
+updateHomeUI();
+</script>
+</body>
+</html>
